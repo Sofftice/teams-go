@@ -23,6 +23,7 @@
         "font/Roboto-ExtraLightItalic.ttf"
     ],
     "stylesheets": [
-        "styles/main.qss"
+        "styles/main.qss",
+        "styles/buttons.qss"
     ]
 }

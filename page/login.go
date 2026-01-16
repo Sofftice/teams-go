@@ -1,6 +1,9 @@
 package page
 
-import qt "github.com/mappu/miqt/qt6"
+import (
+	"github.com/Sofftice/teams-go/widgets"
+	qt "github.com/mappu/miqt/qt6"
+)
 
 func DisplayLoginPage(window *qt.QMainWindow) {
 	widget := prepare(window)
@@ -10,7 +13,7 @@ func DisplayLoginPage(window *qt.QMainWindow) {
 			text := qt.NewQLabel3("Test")
 			layout.AddWidget(text.QWidget)
 
-			text2 := qt.NewQLabel3("Test")
+			text2 := widgets.NewPrimaryButton("Sign in")
 			layout.AddWidget(text2.QWidget)
 		})
 	})
