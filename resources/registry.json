@@ -1,5 +1,27 @@
 {
     "version": 0,
+    "fonts": [
+        "font/Roboto-Black.ttf",
+        "font/Roboto-BlackItalic.ttf",
+        "font/Roboto-ExtraBold.ttf",
+        "font/Roboto-ExtraBoldItalic.ttf",
+        "font/Roboto-Bold.ttf",
+        "font/Roboto-BoldItalic.ttf",
+        "font/Roboto-SemiBold.ttf",
+        "font/Roboto-SemiBoldItalic.ttf",
+        "font/Roboto-Medium.ttf",
+        "font/Roboto-MediumItalic.ttf",
+
+        "font/Roboto-Regular.ttf",
+        "font/Roboto-Italic.ttf",
+
+        "font/Roboto-Thin.ttf",
+        "font/Roboto-ThinItalic.ttf",
+        "font/Roboto-Light.ttf",
+        "font/Roboto-LightItalic.ttf",
+        "font/Roboto-ExtraLight.ttf",
+        "font/Roboto-ExtraLightItalic.ttf"
+    ],
     "stylesheets": [
         "styles/main.qss"
     ]

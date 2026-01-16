@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	qt "github.com/mappu/miqt/qt6"
 	"log"
 	"os"
 	"path/filepath"
@@ -10,6 +11,7 @@ import (
 
 type resourceRegistry struct {
 	Version     int      `json:"version"`
+	Fonts       []string `json:"fonts"`
 	StyleSheets []string `json:"stylesheets"`
 }
 
@@ -18,13 +20,23 @@ const ProcessRegistryVersion = 0
 var ResourceRegistry resourceRegistry
 var CompiledStyleSheets = ""
 
-// ReadResource reads a resource from the resources/ directory. It accepts only relative paths from within the resources directory with forward slashes.
-func ReadResource(path string) ([]byte, error) {
+func GetResourcePath(path string, absolute bool) string {
 	path = strings.ReplaceAll(path, "\\", string(filepath.Separator))
 	path = strings.ReplaceAll(path, "/", string(filepath.Separator))
 
 	path = filepath.Join("resources", path)
-	return os.ReadFile(path)
+
+	if absolute {
+		wd, _ := os.Getwd()
+		path = filepath.Join(wd, path)
+	}
+
+	return path
+}
+
+// ReadResource reads a resource from the resources/ directory. It accepts only relative paths from within the resources directory with forward slashes.
+func ReadResource(path string) ([]byte, error) {
+	return os.ReadFile(GetResourcePath(path, false))
 }
 
 // InitializeResources is the method called when the program starts
@@ -58,5 +70,11 @@ func compileStyleSheets() {
 		}
 
 		CompiledStyleSheets += "\n" + string(data)
+	}
+}
+
+func LoadFonts() {
+	for _, path := range ResourceRegistry.Fonts {
+		qt.QFontDatabase_AddApplicationFont(GetResourcePath(path, true))
 	}
 }
