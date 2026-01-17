@@ -1,4 +1,4 @@
-package main
+package publ
 
 import (
 	"encoding/json"
