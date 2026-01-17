@@ -5,3 +5,13 @@ QMainWindow {
 QLabel {
     font-family: "Roboto";
 }
+
+QLabel[class="header"] {
+    font-size: 32px;
+    font-weight: bold;
+}
+
+QLabel[class="label"] {
+    font-size: 15px;
+    color: rgb(80, 80, 80);
+}
