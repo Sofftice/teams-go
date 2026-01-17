@@ -26,6 +26,9 @@ func DisplayLoginPage(window *qt.QMainWindow) {
 			layout.AddSpacing(50)
 
 			signIn := widgets.NewPrimaryButton("Sign in")
+			signIn.OnPressed(func() {
+				qt.QDesktopServices_OpenUrl(qt.NewQUrl3("https://github.com/Sofftice"))
+			})
 			layout.AddWidget(signIn.QWidget)
 		})
 	})
