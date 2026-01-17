@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/Sofftice/teams-go/page"
+	"github.com/Sofftice/teams-go/publ"
 	qt "github.com/mappu/miqt/qt6"
 	"log"
 	"os"
@@ -9,15 +10,15 @@ import (
 
 func main() {
 	log.Println("Preparing Sofftice Teams")
-	InitializeResources()
+	publ.InitializeResources()
 
 	qt.NewQApplication(os.Args)
-	LoadFonts()
+	publ.LoadFonts()
 
 	window := qt.NewQMainWindow2()
 	window.SetWindowTitle("Sofftice Teams")
 	window.SetMinimumSize2(816, 520)
-	window.SetStyleSheet(CompiledStyleSheets)
+	window.SetStyleSheet(publ.CompiledStyleSheets)
 
 	page.DisplayLoginPage(window)
 
