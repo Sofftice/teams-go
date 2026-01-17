@@ -24,6 +24,9 @@ func main() {
 
 	window.Show()
 
+	qt.QCoreApplication_SetApplicationName("SFTeams")
+	qt.QGuiApplication_SetApplicationDisplayName("Sofftice Teams")
+
 	log.Println("Executing QApplication")
 	qt.QApplication_Exec()
 }
