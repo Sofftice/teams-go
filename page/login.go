@@ -3,9 +3,11 @@ package page
 import (
 	"github.com/Sofftice/teams-go/widgets"
 	qt "github.com/mappu/miqt/qt6"
+	"log"
 )
 
 func DisplayLoginPage(window *qt.QMainWindow) {
+	log.Println("Preparing login page...")
 	widget := prepare(window)
 
 	NewCenterHLayout(widget, func(layout *qt.QHBoxLayout) {
@@ -32,4 +34,6 @@ func DisplayLoginPage(window *qt.QMainWindow) {
 			layout.AddWidget(signIn.QWidget)
 		})
 	})
+
+	log.Println("Login page is now displaying")
 }
