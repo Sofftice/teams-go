@@ -17,10 +17,13 @@ func DisplayLoginPage(window *qt.QMainWindow) {
 			subtitle.SetAlignment(qt.AlignCenter)
 			layout.AddWidget(subtitle.QWidget)
 
-			//image := widgets.NewImage("img/person.png").Constrain(200, 200)
-			//layout.AddWidget(image.QWidget)
+			layout.AddSpacing(25)
 
-			layout.AddSpacing(50 + 200)
+			image := widgets.NewImage("img/person.png").Constrain(200, 200)
+			layout.AddWidget(image.QWidget)
+			layout.SetAlignment(image.QWidget, qt.AlignHCenter)
+
+			layout.AddSpacing(50)
 
 			signIn := widgets.NewPrimaryButton("Sign in")
 			layout.AddWidget(signIn.QWidget)
