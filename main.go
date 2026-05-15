@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"github.com/Sofftice/teams-go/page"
 	"github.com/Sofftice/teams-go/publ"
 	qt "github.com/mappu/miqt/qt6"
@@ -8,9 +9,12 @@ import (
 	"os"
 )
 
+//go:embed resources
+var res embed.FS
+
 func main() {
 	log.Println("Preparing Sofftice Teams")
-	publ.InitializeResources()
+	publ.InitializeResources(res)
 
 	qt.NewQApplication(os.Args)
 	publ.LoadFonts()

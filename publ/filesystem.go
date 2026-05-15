@@ -1,13 +1,14 @@
 package publ
 
 import (
+	"embed"
 	"encoding/json"
 	qt "github.com/mappu/miqt/qt6"
 	"log"
 	"os"
-	"path/filepath"
-	"strings"
 )
+
+var embeddedResources embed.FS
 
 type resourceRegistry struct {
 	Version     int      `json:"version"`
@@ -15,58 +16,42 @@ type resourceRegistry struct {
 	StyleSheets []string `json:"stylesheets"`
 }
 
-const ProcessRegistryVersion = 0
-
 var ResourceRegistry resourceRegistry
 var CompiledStyleSheets = ""
 
-func GetResourcePath(path string, absolute bool) string {
-	path = strings.ReplaceAll(path, "\\", string(filepath.Separator))
-	path = strings.ReplaceAll(path, "/", string(filepath.Separator))
-
-	path = filepath.Join("resources", path)
-
-	if absolute {
-		wd, _ := os.Getwd()
-		path = filepath.Join(wd, path)
-	}
-
-	return path
-}
-
-// ReadResource reads a resource from the resources/ directory. It accepts only relative paths from within the resources directory with forward slashes.
+// ReadResource reads a file from the embedded resources/ directory.
+// Accepts only relative paths with forward slashes.
 func ReadResource(path string) ([]byte, error) {
-	return os.ReadFile(GetResourcePath(path, false))
+	return embeddedResources.ReadFile("resources/" + path)
 }
 
 // InitializeResources is the method called when the program starts
-func InitializeResources() {
+func InitializeResources(fs embed.FS) {
 	log.Println("Initializing all resources")
+	embeddedResources = fs
 
 	initializeRegistry()
 	compileStyleSheets()
-
 	log.Println("Resources ready!")
 }
 
 func initializeRegistry() {
 	data, err := ReadResource("registry.json")
 	if err != nil {
-		log.Fatalf("Failed to get registry.json: %s", err)
+		log.Fatalf("Failed to read registry.json: %s", err)
 	}
 
-	err = json.Unmarshal(data, &ResourceRegistry)
-	if err != nil {
+	if err = json.Unmarshal(data, &ResourceRegistry); err != nil {
 		log.Fatalf("Failed to unmarshal registry.json: %s", err)
 	}
 }
 
-// compileStyleSheets sets the CompiledStyleSheets variable
 func compileStyleSheets() {
 	for _, path := range ResourceRegistry.StyleSheets {
 		data, err := ReadResource(path)
 		if err != nil {
-			log.Printf("Error: cannot read data resource at path %s: %s\n", data, err)
+			log.Printf("Error: cannot read stylesheet %s: %s\n", path, err)
+			continue
 		}
 
 		CompiledStyleSheets += "\n" + string(data)
@@ -75,6 +60,25 @@ func compileStyleSheets() {
 
 func LoadFonts() {
 	for _, path := range ResourceRegistry.Fonts {
-		qt.QFontDatabase_AddApplicationFont(GetResourcePath(path, true))
+		data, err := ReadResource(path)
+		if err != nil {
+			log.Printf("Error: cannot read font %s: %s\n", path, err)
+			continue
+		}
+
+		tmp, err := os.CreateTemp("", "sfteams-font-*.ttf")
+		if err != nil {
+			log.Printf("Error: cannot create temp file for font %s: %s\n", path, err)
+			continue
+		}
+
+		if _, err = tmp.Write(data); err != nil {
+			log.Printf("Error: cannot write temp font %s: %s\n", path, err)
+			tmp.Close()
+			continue
+		}
+		tmp.Close()
+
+		qt.QFontDatabase_AddApplicationFont(tmp.Name())
 	}
 }
