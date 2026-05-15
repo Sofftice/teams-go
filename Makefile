@@ -1,6 +1,6 @@
 run:
-	go run . -ldflags '-s -w'
+	CGO_CXXFLAGS="-std=c++17" go run . -ldflags '-s -w'
 	
 build:
 	go mod tidy
-	go build -ldflags '-s -w'
+	CGO_CXXFLAGS="-std=c++17" go build -ldflags '-s -w'
