@@ -1,13 +1,12 @@
 run:
 	CGO_CXXFLAGS="-std=c++17" go run . -ldflags '-s -w'
 	
-build:
+build-mac:
 	go mod tidy
 
 	rm -rf dist/
 	mkdir -p dist/
 
-	# macOS
 	GOOS="darwin" GOARCH="arm64" CGO_CXXFLAGS="-std=c++17" go build -ldflags '-s -w' -o dist/teams-go
 	mkdir -p "dist/Sofftice Teams.app/Contents/MacOS"
 	mkdir "dist/Sofftice Teams.app/Contents/Resources"
