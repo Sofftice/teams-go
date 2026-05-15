@@ -1,4 +1,3 @@
-# .github/workflows/build-linux.yml
 name: Build Linux
 
 on:
@@ -16,6 +15,7 @@ jobs:
 
     runs-on: ${{ matrix.runner }}
     name: Linux ${{ matrix.arch }}
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
@@ -24,15 +24,26 @@ jobs:
         with:
           go-version-file: go.mod
 
+      # cache so qt isnt downloaded every run
+      - name: Cache apt packages
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: apt-qt6-${{ matrix.arch }}-${{ hashFiles('.github/workflows/build-linux.yml') }}
+          restore-keys: apt-qt6-${{ matrix.arch }}-
+
       - name: Install Qt6 dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
+          sudo apt-get install -y --no-install-recommends \
             qt6-base-dev \
             qt6-webengine-dev \
             libqt6webenginewidgets6 \
             pkg-config \
             gcc g++
+
+      - name: Tidy modules
+        run: go mod tidy
 
       - name: Build
         run: |
