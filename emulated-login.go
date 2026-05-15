@@ -15,14 +15,17 @@ const loginURL = "https://teams.microsoft.com/"
 const tokenURLFragment = "oauth2/v2.0/token"
 
 type TokenResponse struct {
-	TokenType             string `json:"token_type"`
-	ExpiresIn             int    `json:"expires_in"`
-	ExtExpiresIn          int    `json:"ext_expires_in"`
-	RefreshTokenExpiresIn int    `json:"refresh_token_expires_in"`
-	AccessToken           string `json:"access_token"`
-	RefreshToken          string `json:"refresh_token"`
-	IdToken               string `json:"id_token"`
-	ClientInfo            string `json:"client_info"`
+	TokenType string `json:"token_type"`
+
+	ExpiresIn             int `json:"expires_in"`
+	ExtExpiresIn          int `json:"ext_expires_in"`
+	RefreshTokenExpiresIn int `json:"refresh_token_expires_in"`
+
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	IdToken      string `json:"id_token"`
+
+	ClientInfo string `json:"client_info"`
 }
 
 func DemandTokenResponse() (TokenResponse, error) {
