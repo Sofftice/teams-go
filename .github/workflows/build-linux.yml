@@ -10,12 +10,14 @@ jobs:
         include:
           - arch: amd64
             runner: ubuntu-latest
+            linuxdeploy_arch: x86_64
           - arch: arm64
             runner: ubuntu-24.04-arm
+            linuxdeploy_arch: aarch64
 
     runs-on: ${{ matrix.runner }}
     name: Linux ${{ matrix.arch }}
-    timeout-minutes: 10
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
@@ -52,7 +54,49 @@ jobs:
           CGO_CXXFLAGS="-std=c++17" \
           go build -ldflags '-s -w' -o dist/teams-go-linux-${{ matrix.arch }} .
 
+      - name: Install linuxdeploy
+        run: |
+          curl -fsSL -o linuxdeploy \
+            https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${{ matrix.linuxdeploy_arch }}.AppImage
+          curl -fsSL -o linuxdeploy-plugin-qt \
+            https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-${{ matrix.linuxdeploy_arch }}.AppImage
+          chmod +x linuxdeploy linuxdeploy-plugin-qt
+
+          # AppImages need FUSE, which isn't available in CI — extract instead
+          ./linuxdeploy --appimage-extract
+          ./linuxdeploy-plugin-qt --appimage-extract
+          mv squashfs-root linuxdeploy-extracted
+          mv squashfs-root linuxdeploy-qt-extracted 2>/dev/null || true
+
+      - name: Package AppImage
+        env:
+          QMAKE: /usr/bin/qmake6
+        run: |
+          mkdir -p AppDir/usr/bin \
+                   AppDir/usr/share/applications \
+                   AppDir/usr/share/icons/hicolor/256x256/apps
+
+          cp dist/teams-go-linux-${{ matrix.arch }} AppDir/usr/bin/teams-go
+
+          cat > AppDir/usr/share/applications/teams.desktop << 'EOF'
+          [Desktop Entry]
+          Name=Sofftice Teams
+          Exec=teams-go
+          Icon=teams
+          Type=Application
+          Categories=Network;
+          EOF
+
+          cp building/icon.png AppDir/usr/share/icons/hicolor/256x256/apps/teams.png
+
+          ./linuxdeploy-extracted/AppRun \
+            --appdir AppDir \
+            --plugin qt \
+            --output appimage
+
+          mv Sofftice_Teams*.AppImage dist/SofficeTeams-${{ matrix.arch }}.AppImage
+
       - uses: actions/upload-artifact@v4
         with:
-          name: teams-go-linux-${{ matrix.arch }}
-          path: dist/teams-go-linux-${{ matrix.arch }}
+          name: SofficeTeams-${{ matrix.arch }}.AppImage
+          path: dist/SofficeTeams-${{ matrix.arch }}.AppImage
