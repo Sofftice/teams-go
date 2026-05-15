@@ -14,3 +14,4 @@ build:
 	
 	mv dist/teams-go "dist/Sofftice Teams.app/Contents/MacOS"
 	cp building/Info.plist "dist/Sofftice Teams.app/Contents/Info.plist"
+	cp building/icon.icns "dist/Sofftice Teams.app/Contents/Resources/icon.icns"
