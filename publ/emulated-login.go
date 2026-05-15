@@ -1,9 +1,10 @@
-package main
+package publ
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/chromedp/cdproto/cdp"
@@ -33,6 +34,10 @@ func DemandTokenResponse() (TokenResponse, error) {
 		chromedp.Flag("headless", false),
 		chromedp.Flag("disable-popup-blocking", true),
 		chromedp.Flag("app", loginURL),
+
+		chromedp.Flag("enable-automation", false),
+		//chromedp.Flag("disable-blink-features", "AutomationControlled"),
+		chromedp.Flag("disable-extensions", true),
 		chromedp.WindowSize(400, 512),
 	)
 
@@ -45,7 +50,7 @@ func DemandTokenResponse() (TokenResponse, error) {
 	tokenCh := make(chan TokenResponse, 1)
 	errCh := make(chan error, 1)
 
-	chromedp.ListenBrowser(ctx, func(ev any) {
+	chromedp.ListenTarget(ctx, func(ev any) {
 		e, ok := ev.(*network.EventResponseReceived)
 		if !ok {
 			return
@@ -80,7 +85,7 @@ func DemandTokenResponse() (TokenResponse, error) {
 		return TokenResponse{}, fmt.Errorf("chromedp run: %w", err)
 	}
 
-	fmt.Println("waiting for login")
+	log.Println("(emulated-login) waiting for login")
 
 	select {
 	case tr := <-tokenCh:
