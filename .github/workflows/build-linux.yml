@@ -1,8 +1,6 @@
 name: Build Linux
-
 on:
   workflow_dispatch:
-
 jobs:
   build:
     strategy:
@@ -14,25 +12,25 @@ jobs:
           - arch: arm64
             runner: ubuntu-24.04-arm
             linuxdeploy_arch: aarch64
-
     runs-on: ${{ matrix.runner }}
     name: Linux ${{ matrix.arch }}
-    timeout-minutes: 30
-
+    timeout-minutes: 60  # CGO+Qt6 needs more headroom
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+          cache: true  # works once go.sum is committed
 
-      # cache so qt isnt downloaded every run
+      # Cache apt packages so Qt6 isn't re-downloaded every run
       - name: Cache apt packages
         uses: actions/cache@v4
         with:
           path: /var/cache/apt/archives
           key: apt-qt6-${{ matrix.arch }}-${{ hashFiles('.github/workflows/build-linux.yml') }}
           restore-keys: apt-qt6-${{ matrix.arch }}-
+          save-always: true  # save even on cache miss so next run benefits
 
       - name: Install Qt6 dependencies
         run: |
@@ -42,7 +40,17 @@ jobs:
             qt6-webengine-dev \
             libqt6webenginewidgets6 \
             pkg-config \
-            gcc g++
+            gcc g++ \
+            ccache  # speeds up repeated CGO builds significantly
+
+      # Cache ccache directory to speed up CGO recompilation
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-qt6-${{ matrix.arch }}-${{ github.sha }}
+          restore-keys: ccache-qt6-${{ matrix.arch }}-
+          save-always: true
 
       - name: Tidy modules
         run: go mod tidy
@@ -50,10 +58,14 @@ jobs:
       - name: Build
         run: |
           mkdir -p dist
+          export CCACHE_DIR=~/.ccache
           CGO_ENABLED=1 \
           CGO_CXXFLAGS="-std=c++17" \
+          CC="ccache gcc" \
+          CXX="ccache g++" \
           go build -ldflags '-s -w' -o dist/teams-go-linux-${{ matrix.arch }} .
 
+      # Fix: extract each AppImage to a unique directory
       - name: Install linuxdeploy
         run: |
           curl -fsSL -o linuxdeploy \
@@ -62,15 +74,19 @@ jobs:
             https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-${{ matrix.linuxdeploy_arch }}.AppImage
           chmod +x linuxdeploy linuxdeploy-plugin-qt
 
-          # AppImages need FUSE, which isn't available in CI — extract instead
+          # Extract to separate dirs using --appimage-extract-and-run isn't
+          # available here, so extract manually with unique target names
           ./linuxdeploy --appimage-extract
-          ./linuxdeploy-plugin-qt --appimage-extract
           mv squashfs-root linuxdeploy-extracted
-          mv squashfs-root linuxdeploy-qt-extracted 2>/dev/null || true
+
+          ./linuxdeploy-plugin-qt --appimage-extract
+          mv squashfs-root linuxdeploy-qt-extracted
 
       - name: Package AppImage
         env:
           QMAKE: /usr/bin/qmake6
+          # Tell linuxdeploy-plugin-qt where the plugin is
+          LINUXDEPLOY_PLUGIN_QT: ${{ github.workspace }}/linuxdeploy-qt-extracted/AppRun
         run: |
           mkdir -p AppDir/usr/bin \
                    AppDir/usr/share/applications \
